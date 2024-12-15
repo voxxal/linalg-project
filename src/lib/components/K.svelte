@@ -1,20 +1,23 @@
 <script lang="ts">
-	import katex from "katex";
-    const { math, displayMode = false }: { math: string, displayMode?: boolean} = $props();
-	
+	import katex from 'katex';
+	const {
+		math,
+		displayMode = false,
+		...rest
+	}: { math: string; displayMode?: boolean; class?: string } = $props();
+
 	const options = {
 		displayMode: displayMode,
 		throwOnError: false
-	}
+	};
 
-    let katexString = $state("");
+	let katexString = $state('');
 
-    $effect(() => {
-        katexString = katex.renderToString(math, options);
-    })
-	
+	$effect(() => {
+		katexString = katex.renderToString(math, options);
+	});
 </script>
 
-
-
-{@html katexString}
+<span class={rest.class}>
+	{@html katexString}
+</span>
