@@ -1,5 +1,6 @@
 <script lang="ts">
 	const PI = Math.PI;
+	import FourierGraphical from '$lib/components/FourierGraphical.svelte';
 	import K from '$lib/components/K.svelte';
 	import { Canvas, Layer, type Render } from 'svelte-canvas';
 	const fn = (t: number) => 4 * Math.floor(t) - 2 * Math.floor(2 * t) + 1;
@@ -152,8 +153,14 @@
 		/>
 
 		<div class="grid grid-cols-2 justify-center items-center text-center">
-			<K math={`\\color{red}a_k = \\frac{1}{\\pi}\\int_0^{2\\pi}f(t)\\cos{kt}\\,dt`} />
-			<K math={`\\color{blue}b_k = \\frac{1}{\\pi}\\int_0^{2\\pi}f(t)\\sin{kt}\\,dt`} />
+			<K
+				math={`\\color{red}a_k = \\frac{1}{\\pi}\\int_0^{2\\pi}f(t)\\cos{kt}\\,dt`}
+				displayMode={true}
+			/>
+			<K
+				math={`\\color{blue}b_k = \\frac{1}{\\pi}\\int_0^{2\\pi}f(t)\\sin{kt}\\,dt`}
+				displayMode={true}
+			/>
 		</div>
 	</div>
 	<p>
@@ -188,7 +195,26 @@
 		math={`\\pi - 2 \\sin{t} - \\sin{2t} - \\frac{2}{3} \\sin{3t} - \\cdots - \\frac{2}{n} \\sin{nt}`}
 		displayMode={true}
 	/>
+	<p>
+		Lets see what this looks like in a graphical form. The
+		<span class="text-blue-500 font-bold">blue line</span> represents our current approximation,
+		while the arrows show how adding the next term will affect our approximation. The
+		<span class="text-red-500 font-bold">red line</span> is the function we are trying to
+		approximate,
+		<K math="f(t) = t" />.
+	</p>
 </article>
+<FourierGraphical />
+<article class="prose lg:prose-xl m-auto">
+	<p>
+		Note that this is only on the domain <K math="[0, 2\pi]" /> if we pull back the curtain a bit, we'll
+		see that the function repeats with a period of <K math="2\pi" />.
+	</p>
+	<!-- TODO make a visual for past 2pi, that requires refactoring some of the rendering code and at the time of writing its 11:49 and im going to sleep soon. -->
+	<p>Now its your turn. Using a fourier series, decompose the following function into a fourier</p>
+</article>
+<div class="mb-32"></div>
+
 <!-- <div class="min-h-screen w-full">
 	<Canvas class="min-h-screen">
 		<Layer {render} />
