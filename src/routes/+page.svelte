@@ -2,6 +2,7 @@
 	const PI = Math.PI;
 	import FourierGraphical from '$lib/components/FourierGraphical.svelte';
 	import K from '$lib/components/K.svelte';
+	import PeriodicGraphical from '$lib/components/PeriodicGraphical.svelte';
 	import { Canvas, Layer, type Render } from 'svelte-canvas';
 	const fn = (t: number) => 4 * Math.floor(t) - 2 * Math.floor(2 * t) + 1;
 	const circle = (ctx: CanvasRenderingContext2D, x: number, y: number, radius: number) => {
@@ -50,6 +51,9 @@
 	const vu = `\\vec{u}`;
 	const realR = `\\mathbb{R}`;
 	const proj = (a: string, b: string) => `\\text{proj}_{${a}}{${b}}`;
+
+	let step = $state(0);
+	$effect(() => console.log(step));
 </script>
 
 <svelte:head>
@@ -204,15 +208,19 @@
 		<K math="f(t) = t" />.
 	</p>
 </article>
-<FourierGraphical />
+<FourierGraphical bind:step={step} />
 <article class="prose lg:prose-xl m-auto">
 	<p>
 		Note that this is only on the domain <K math="[0, 2\pi]" /> if we pull back the curtain a bit, we'll
 		see that the function repeats with a period of <K math="2\pi" />.
 	</p>
-	<!-- TODO make a visual for past 2pi, that requires refactoring some of the rendering code and at the time of writing its 11:49 and im going to sleep soon. -->
+</article>
+<PeriodicGraphical {step} />
+<!-- TODO make a visual for past 2pi, that requires refactoring some of the rendering code and at the time of writing its 11:49 and im going to sleep soon. -->
+<article class="prose lg:prose-xl m-auto">
 	<p>Now its your turn. Using a fourier series, decompose the following function into a fourier</p>
 </article>
+
 <div class="mb-32"></div>
 
 <!-- <div class="min-h-screen w-full">

@@ -2,28 +2,11 @@
 	import { cubicOut } from 'svelte/easing';
 	import { Tween } from 'svelte/motion';
 	import K from './K.svelte';
+	import { graphSetup, PI, drawFunction, numOnScreen } from '$lib/graph';
+	import { ft_eq_t, nthOrderFF } from '$lib/fourier';
 	const MAX_ORDER = 20;
 
-	const graphSetup = (canvas: HTMLCanvasElement) => {
-		const ctx = canvas.getContext('2d')!!;
-		ctx.fillStyle = '#fff';
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-		ctx.fillStyle = 'transparent';
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-		ctx.fillStyle = '#aaa';
-		const NUM_LINES = 8;
-		for (let i = 1; i <= NUM_LINES; i++) {
-			ctx.fillRect(0, (1 / NUM_LINES) * i * (canvas.height / 2), canvas.width, 1);
-			ctx.fillRect(0, canvas.height - (1 / NUM_LINES) * i * (canvas.height / 2), canvas.width, 1);
-			ctx.fillRect((1 / NUM_LINES) * i * canvas.width, 0, 1, canvas.height);
-		}
-		ctx.fillStyle = '#000';
-		ctx.fillRect(0, 0, 4, canvas.height);
-		ctx.fillRect(0, canvas.height / 2 - 4, canvas.width, 4);
-	};
-
-	let step = $state(0);
+	let { step = $bindable() }: { step: number } = $props();
 	let showArrows = $state(true);
 	let stepLerped = new Tween(0, {
 		duration: 200,
@@ -37,27 +20,11 @@
 		})
 	);
 	let arrowDirty = $state(false);
-    let scrollTrack: HTMLDivElement = $state(null as unknown as HTMLDivElement);
+	let scrollTrack: HTMLDivElement = $state(null as unknown as HTMLDivElement);
 
-	const tToScreenX = (canvas: HTMLCanvasElement, t: number) => (t * canvas.width) / (2 * Math.PI);
-
-	const fnToScreenY = (canvas: HTMLCanvasElement, v: number) =>
-		(1 - v / (2 * Math.PI)) * (canvas.height / 2);
-
-	const drawFunction = (
-		canvas: HTMLCanvasElement,
-		fn: (t: number) => number,
-		{ percision = 0.03, color = '#3b82f6', width = 2 } = {}
-	) => {
-		const ctx = canvas.getContext('2d')!!;
-		ctx.strokeStyle = color;
-		ctx.lineWidth = width;
-		ctx.beginPath();
-		ctx.moveTo(0, (1 - fn(0) / (2 * Math.PI)) * (canvas.height / 2));
-		for (let t = 0; t < 2 * Math.PI; t += percision) {
-			ctx.lineTo(tToScreenX(canvas, t), fnToScreenY(canvas, fn(t)));
-		}
-		ctx.stroke();
+	const graphSettings: { domain: [number, number]; range: [number, number] } = {
+		domain: [0, 2 * PI],
+		range: [-PI, 2.5 * PI]
 	};
 
 	// yoinked directly from https://codepen.io/chanthy/pen/WxQoVG
@@ -89,24 +56,15 @@
 		//the point
 		ctx.beginPath();
 		ctx.moveTo(tox, toy);
-		ctx.lineTo(
-			tox - headlen * Math.cos(angle - Math.PI / 7),
-			toy - headlen * Math.sin(angle - Math.PI / 7)
-		);
+		ctx.lineTo(tox - headlen * Math.cos(angle - PI / 7), toy - headlen * Math.sin(angle - PI / 7));
 
 		//path from the side point of the arrow, to the other side point
-		ctx.lineTo(
-			tox - headlen * Math.cos(angle + Math.PI / 7),
-			toy - headlen * Math.sin(angle + Math.PI / 7)
-		);
+		ctx.lineTo(tox - headlen * Math.cos(angle + PI / 7), toy - headlen * Math.sin(angle + PI / 7));
 
 		//path from the side point back to the tip of the arrow, and then
 		//again to the opposite side point
 		ctx.lineTo(tox, toy);
-		ctx.lineTo(
-			tox - headlen * Math.cos(angle - Math.PI / 7),
-			toy - headlen * Math.sin(angle - Math.PI / 7)
-		);
+		ctx.lineTo(tox - headlen * Math.cos(angle - PI / 7), toy - headlen * Math.sin(angle - PI / 7));
 
 		//draws the paths created above
 		ctx.stroke();
@@ -118,64 +76,47 @@
 		fn1: (t: number) => number,
 		fn2: (t: number) => number
 	) => {
+		const coord = numOnScreen(canvas, graphSettings);
 		const ctx = canvas.getContext('2d')!!;
 
-		for (let t = 0; t < 2 * Math.PI; t += 0.3) {
-			const x = tToScreenX(canvas, t);
+		for (let t = 0; t < 2 * PI; t += 0.3) {
+			const x = coord(t)[0];
 			if (Math.abs((fn2(t) - fn1(t)) * arrowScale.current) < 0.2) continue;
 			drawArrow(
 				ctx,
 				x,
-				fnToScreenY(canvas, fn1(t)),
+				coord(fn1(t))[1],
 				x,
-				fnToScreenY(canvas, fn1(t) + (fn2(t) - fn1(t)) * arrowScale.current),
+				coord(fn1(t) + (fn2(t) - fn1(t)) * arrowScale.current)[1],
 				3,
 				fn1(t) - fn2(t) < 0 ? 'green' : '#ef4444'
 			);
 		}
 	};
 
-	const myGloriousHorribleHackThatIsInTotalViolationOfAllRulesOfTypescript =
-		null as unknown as HTMLCanvasElement;
-	let mainCanvas: HTMLCanvasElement = $state(
-		myGloriousHorribleHackThatIsInTotalViolationOfAllRulesOfTypescript
-	);
-	let canvases: HTMLCanvasElement[] = Array(MAX_ORDER).fill(myGloriousHorribleHackThatIsInTotalViolationOfAllRulesOfTypescript)
-
-	const fourierFunction = (i: number) => (t: number) =>
-		i === 0 ? 0 : i === 1 ? Math.PI : -(2 / (i - 1)) * Math.sin((i - 1) * t);
-	const nthOrderFF = (i: number) => (t: number) => {
-		let sum = 0;
-		for (let j = 0; j <= i; j++) {
-			sum += fourierFunction(j)(t);
-		}
-
-		if (i % 1 !== 0) {
-			sum += fourierFunction(Math.ceil(i))(t) * (i - Math.trunc(i));
-		}
-		return sum;
-	};
-
+	let mainCanvas: HTMLCanvasElement = $state(null as unknown as HTMLCanvasElement);
+	let canvases: HTMLCanvasElement[] = Array(MAX_ORDER).fill(null as unknown as HTMLCanvasElement);
 	$effect(() => {
-		graphSetup(mainCanvas);
-		drawFunction(mainCanvas, (t) => t, { color: '#ef4444' });
+		graphSetup(mainCanvas, graphSettings);
+		drawFunction(mainCanvas, (t) => t, { color: '#ef4444', ...graphSettings });
 
 		for (let i = 0; i < canvases.length; i++) {
 			const canvas = canvases[i];
-			graphSetup(canvas);
-			drawFunction(canvas, fourierFunction(i + 1));
+			graphSetup(canvas, graphSettings);
+			drawFunction(canvas, ft_eq_t(i + 1), graphSettings);
 		}
 	});
-	
-    $effect(() => {
+
+	$effect(() => {
 		stepLerped.target = step;
 		arrowDirty = true;
 	});
 
 	$effect(() => {
-		graphSetup(mainCanvas);
-		drawFunction(mainCanvas, (t) => t, { color: '#ef4444' });
-		drawFunction(mainCanvas, nthOrderFF(stepLerped.current));
+		graphSetup(mainCanvas, graphSettings);
+		drawFunction(mainCanvas, (t) => t, { color: '#ef4444', ...graphSettings });
+		const sumOfFouriers = nthOrderFF(ft_eq_t);
+		drawFunction(mainCanvas, sumOfFouriers(stepLerped.current), graphSettings);
 		if (
 			Math.ceil(stepLerped.current + 0.05) != Math.ceil(stepLerped.current + 0.01) &&
 			arrowDirty
@@ -190,13 +131,13 @@
 		if (showArrows && step !== MAX_ORDER)
 			drawArrows(
 				mainCanvas,
-				nthOrderFF(stepLerped.current),
-				nthOrderFF(Math.ceil(stepLerped.current + 0.01))
+				sumOfFouriers(stepLerped.current),
+				sumOfFouriers(Math.ceil(stepLerped.current + 0.01))
 			);
-        scrollTrack.scrollLeft = Math.max(0, (stepLerped.current - 0.75) * (384 + 32))
+		scrollTrack.scrollLeft = Math.max(0, (stepLerped.current - 0.75) * (384 + 32));
 	});
 
-    // thanks claude
+	// thanks claude
 	const getOrdinalSuffix = (n: number): string => {
 		// Convert number to absolute value to handle negative numbers
 		const num = Math.abs(Math.floor(n));
@@ -217,14 +158,21 @@
 			default:
 				return `th`;
 		}
-	}
+	};
 </script>
 
 <div class="my-16">
 	<div class="mx-8 flex">
 		<div>
-			<canvas height={384 * 2} width={384} bind:this={mainCanvas}></canvas>
-			<div><K math={step === 0 ? "f(x) = 0" : `${step - 1}\\text{${getOrdinalSuffix(step - 1)} degree Fourier Approximation}`} displayMode={true} /></div>
+			<canvas height={384 * 1.75} width={384} bind:this={mainCanvas}></canvas>
+			<div>
+				<K
+					math={step === 0
+						? 'f(x) = 0'
+						: `${step - 1}\\text{${getOrdinalSuffix(step - 1)} order Fourier Approximation}`}
+					displayMode={true}
+				/>
+			</div>
 		</div>
 
 		<div class="flex basis-[384px] flex-1 gap-8 ml-16 overflow-scroll" bind:this={scrollTrack}>
@@ -232,13 +180,15 @@
 				<div>
 					<div class="grid *:col-start-1 *:row-start-1 grid-cols-1 grid-rows-1 w-[384px]">
 						<canvas
-							height={384 * 2}
+							height={384 * 1.75}
 							width={384}
 							bind:this={canvases[i]}
-                            style="opacity: {Math.max(0.15, ((stepLerped.current - i) / 1.5 + 0.7))}"
+							style="opacity: {Math.max(0.15, (stepLerped.current - i) / 1.5 + 0.7)}"
 						></canvas>
 						<div
-							class="{Math.ceil(stepLerped.current) === i ? 'bg-yellow-100 opacity-20' : ''} transition-all"
+							class="{Math.ceil(stepLerped.current) === i
+								? 'bg-yellow-100 opacity-20'
+								: ''} transition-all"
 						></div>
 					</div>
 					<div>
