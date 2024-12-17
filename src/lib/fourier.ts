@@ -16,3 +16,17 @@ export const nthOrderFF =
 
 export const ft_eq_t = (i: number) => (t: number) =>
 	i === 0 ? 0 : i === 1 ? PI : -(2 / (i - 1)) * Math.sin((i - 1) * t);
+export const ft_eq_t_2 = (i: number) => (t: number) =>
+	i === 0
+		? 0
+		: i === 1
+			? (4 * PI ** 2) / 3
+			: (4 / (i - 1) ** 2) * Math.cos((i - 1) * t) - ((4 * PI) / (i - 1)) * Math.sin((i - 1) * t);
+
+export const ft_eq_square = (i: number) => (t: number) =>
+	i <= 1
+		? 0
+		: (2 / (PI * (i - 1)) +
+				(2 * Math.cos(PI * (i - 1))) / (PI * (i - 1)) -
+				(4 * Math.cos((PI * (i - 1)) / 2)) / (PI * (i - 1))) *
+			Math.sin((i - 1) * t);

@@ -6,7 +6,22 @@
 	import { ft_eq_t, nthOrderFF } from '$lib/fourier';
 	const MAX_ORDER = 20;
 
-	let { step = $bindable() }: { step: number } = $props();
+	let {
+		step = $bindable(),
+		func = ft_eq_t,
+		targetFunc = (t) => t,
+		graphSettings = {
+			domain: [0, 2 * PI],
+			range: [-PI, 2.5 * PI]
+		},
+		labelFunc = (i) => (i === 0 ? `\\pi` : `-\\frac{2}{${i}}\\sin{${i === 1 ? '' : i}t}`)
+	}: {
+		step?: number;
+		func?: (i: number) => (t: number) => number;
+		targetFunc?: (t: number) => number;
+		graphSettings?: { domain: [number, number]; range: [number, number] };
+		labelFunc?: (i: number) => string;
+	} = $props();
 	let showArrows = $state(true);
 	let stepLerped = new Tween(0, {
 		duration: 200,
@@ -21,11 +36,6 @@
 	);
 	let arrowDirty = $state(false);
 	let scrollTrack: HTMLDivElement = $state(null as unknown as HTMLDivElement);
-
-	const graphSettings: { domain: [number, number]; range: [number, number] } = {
-		domain: [0, 2 * PI],
-		range: [-PI, 2.5 * PI]
-	};
 
 	// yoinked directly from https://codepen.io/chanthy/pen/WxQoVG
 	function drawArrow(
@@ -98,12 +108,12 @@
 	let canvases: HTMLCanvasElement[] = Array(MAX_ORDER).fill(null as unknown as HTMLCanvasElement);
 	$effect(() => {
 		graphSetup(mainCanvas, graphSettings);
-		drawFunction(mainCanvas, (t) => t, { color: '#ef4444', ...graphSettings });
+		drawFunction(mainCanvas, targetFunc, { color: '#ef4444', ...graphSettings });
 
 		for (let i = 0; i < canvases.length; i++) {
 			const canvas = canvases[i];
 			graphSetup(canvas, graphSettings);
-			drawFunction(canvas, ft_eq_t(i + 1), graphSettings);
+			drawFunction(canvas, func(i + 1), graphSettings);
 		}
 	});
 
@@ -114,8 +124,8 @@
 
 	$effect(() => {
 		graphSetup(mainCanvas, graphSettings);
-		drawFunction(mainCanvas, (t) => t, { color: '#ef4444', ...graphSettings });
-		const sumOfFouriers = nthOrderFF(ft_eq_t);
+		drawFunction(mainCanvas, targetFunc, { color: '#ef4444', ...graphSettings });
+		const sumOfFouriers = nthOrderFF(func);
 		drawFunction(mainCanvas, sumOfFouriers(stepLerped.current), graphSettings);
 		if (
 			Math.ceil(stepLerped.current + 0.05) != Math.ceil(stepLerped.current + 0.01) &&
@@ -192,10 +202,7 @@
 						></div>
 					</div>
 					<div>
-						<K
-							math={i === 0 ? `\\pi` : `-\\frac{2}{${i}}\\sin{${i === 1 ? '' : i}t}`}
-							displayMode={true}
-						/>
+						<K math={labelFunc(i)} displayMode={true} />
 					</div>
 				</div>
 			{/each}

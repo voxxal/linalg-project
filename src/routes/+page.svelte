@@ -3,6 +3,7 @@
 	import FourierGraphical from '$lib/components/FourierGraphical.svelte';
 	import K from '$lib/components/K.svelte';
 	import PeriodicGraphical from '$lib/components/PeriodicGraphical.svelte';
+	import { ft_eq_square, ft_eq_t_2 } from '$lib/fourier';
 	import { Canvas, Layer, type Render } from 'svelte-canvas';
 	const fn = (t: number) => 4 * Math.floor(t) - 2 * Math.floor(2 * t) + 1;
 	const circle = (ctx: CanvasRenderingContext2D, x: number, y: number, radius: number) => {
@@ -53,7 +54,6 @@
 	const proj = (a: string, b: string) => `\\text{proj}_{${a}}{${b}}`;
 
 	let step = $state(0);
-	$effect(() => console.log(step));
 </script>
 
 <svelte:head>
@@ -208,7 +208,7 @@
 		<K math="f(t) = t" />.
 	</p>
 </article>
-<FourierGraphical bind:step={step} />
+<FourierGraphical bind:step />
 <article class="prose lg:prose-xl m-auto">
 	<p>
 		Note that this is only on the domain <K math="[0, 2\pi]" /> if we pull back the curtain a bit, we'll
@@ -216,10 +216,56 @@
 	</p>
 </article>
 <PeriodicGraphical {step} />
-<!-- TODO make a visual for past 2pi, that requires refactoring some of the rendering code and at the time of writing its 11:49 and im going to sleep soon. -->
 <article class="prose lg:prose-xl m-auto">
-	<p>Now its your turn. Using a fourier series, decompose the following function into a fourier</p>
+	<p>
+		Now its your turn. Using a fourier series, decompose the following function into a fourier.
+		Refer to the key for the solution's work
+	</p>
+	<h3>
+		Find the nth-order Fourier series approximation for the function <K math="f(t)=t^2" />, on the
+		domain <K math="[0, 2\pi]" />.
+	</h3>
+	<!-- TODO misha please insert the key info into here if you can -->
 </article>
+<details>
+	<summary class="prose lg:prose-xl m-auto hover:cursor-pointer">Show solution</summary>
+	<K
+		math={`f(t) \\approx \\frac{4\\pi^2}{3} + \\sum_{k=1}^{n} \\left(\\frac{4}{k^2}\\cos{kt} - \\frac{4\\pi}{k}\\sin{kt}\\right)`}
+		displayMode={true}
+	/>
+	<FourierGraphical
+		func={ft_eq_t_2}
+		targetFunc={(t) => t ** 2}
+		graphSettings={{ domain: [0, 2 * PI], range: [-2 * PI ** 2, 4 * PI ** 2] }}
+		labelFunc={(i) =>
+			i === 0
+				? `\\frac{4\\pi^2}{3}`
+				: `\\frac{4}{${i}^2}\\cos{${i}t} - \\frac{4\\pi}{${i}}\\sin{${i}t}`}
+	/>
+</details>
+
+<article class="prose lg:prose-xl m-auto">
+	<h3>
+		An alternating analog signal sends messages using 1 and -1, alternating between 1 on
+		<K math={`[0, \\frac{\\pi}{2}]`} /> and -1 on <K math={`[\\frac{\\pi}{2}, \\pi]`} /> and so on..
+	</h3>
+</article>
+<details>
+	<summary class="prose lg:prose-xl m-auto hover:cursor-pointer">Show solution</summary>
+	<K
+		math={`f(t) \\approx \\sum_{k=1}^{n} \\left(\\left(\\frac{2}{\\pi k} + \\frac{2\\cos{\\pi k}}{\\pi k} + \\frac{4\\cos{\\frac{\\pi k}{2}}}{\\pi k}{}\\right)\\sin{kt}\\right)`}
+		displayMode={true}
+	/>
+	<FourierGraphical
+		func={ft_eq_square}
+		targetFunc={(t) => (t <= PI / 2 || (t >= PI && t <= (3 * PI) / 2) ? 1 : -1)}
+		graphSettings={{ domain: [0, 2 * PI], range: [-2, 2] }}
+		labelFunc={(i) =>
+			i <= 1
+				? `0`
+				: `\\left(\\frac{2}{\\pi ${i}} + \\frac{2\\cos{\\pi ${i}}}{\\pi ${i}} + \\frac{4\\cos{\\frac{\\pi ${i}}{2}}}{\\pi ${i}}{}\\right)\\sin{${i}t}`}
+	/>
+</details>
 
 <div class="mb-32"></div>
 
