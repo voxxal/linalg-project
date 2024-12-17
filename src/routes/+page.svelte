@@ -1,5 +1,6 @@
 <script lang="ts">
 	const PI = Math.PI;
+	export const prerender = true;
 	import FourierGraphical from '$lib/components/FourierGraphical.svelte';
 	import K from '$lib/components/K.svelte';
 	import PeriodicGraphical from '$lib/components/PeriodicGraphical.svelte';
@@ -78,19 +79,47 @@
 	<h2>A Quick Recap...</h2>
 	<p>
 		Recall that to prove any set <K math="V" /> is a vector space, the following conditions must all
-		hold where <K math={`${vu}, \\vec{v}`} /> are vectors in V and <K math="c" /> is any scalar in
+		hold where <K math={`${vu}, \\vec{v}`} /> are vectors in <K math="V" /> and <K math="c" /> is any scalar in
 		<K math={realR} />
 	</p>
 	<ol>
-		<li><K math={`${vu} + \\vec{v}`} /> is in <K math="V" /></li>
-		<li>
-			<K math="V" /> has a zero vector <K math={`\\vec{0}`} /> such that for every
-			<K math={`${vu}`} /> in <K math="V" />, <K math={`${vu} + \\vec{0} = ${vu}`} />.
-		</li>
-		<li><K math={`c${vu}`} /> is in <K math="V" /></li>
-	</ol>
+  <li><strong>Closure under addition:</strong> <K math={`${vu} + \\vec{v}`} /> is in <K math="V" />.</li>
+  <li><strong>Closure under multiplication by a scalar:</strong> <K math={`c${vu}`} /> is in <K math="V" />.</li>
+  <li><strong>Commutativity of addition:</strong> For all <K math={`${vu}, \\vec{v}`} /> in <K math="V" />, <K math={`${vu} + \\vec{v} = \\vec{v} + ${vu}`} />.</li>
+  <li><strong>Associative property of addition:</strong> For all <K math={`${vu}, \\vec{v}, \\vec{w}`} /> in <K math="V" />, <K math={`(${vu} + \\vec{v}) + \\vec{w} = ${vu} + (\\vec{v} + \\vec{w})`} />.</li>
+  <li>
+    <strong>Exists zero vector:</strong> <K math="V" /> has a zero vector <K math={`\\vec{0}`} /> such that for every
+    <K math={`${vu}`} /> in <K math="V" />, <K math={`${vu} + \\vec{0} = ${vu}`} />.
+  </li>
+  <li>
+    <strong>Exists additive inverse for each vector:</strong> For every <K math={`${vu}`} /> in <K math="V" />, there exists
+    a vector <K math={`- ${vu}`} /> in <K math="V" /> such that <K math={`${vu} + (-${vu}) = \\vec{0}`} />.
+  </li>
+  <li>
+    <strong>Associative property of scalar multiplication:</strong> For all scalars <K math={`c, d`} /> in
+    <K math={realR} /> and all vectors <K math={`${vu}`} /> in <K math="V" />, <K math={`(cd)${vu} = c(d${vu})`} />.
+  </li>
+  <li>
+    <strong>Distributivity of vector multiplication over vector addition:</strong> For all scalars <K math="c" /> in
+    <K math={realR} /> and all vectors <K math={`${vu}, \\vec{v}`} /> in <K math="V" />,
+    <K math={`c(${vu} + \\vec{v}) = c${vu} + c\\vec{v}`} />.
+  </li>
+  <li>
+    <strong>Distributivity of scalar addition:</strong> For all scalars <K math={`c, d`} /> in
+    <K math={realR} /> and all vectors <K math={`${vu}`} /> in <K math="V" />,
+    <K math={`(c + d)${vu} = c${vu} + d${vu}`} />.
+  </li>
+  <li>
+    <strong>(Scalar) Muliplicative identity exists:</strong> There exists a scalar <K math="1" /> in <K math={realR} /> such that
+    for every vector <K math={`${vu}`} /> in <K math="V" />, <K math={`1${vu} = ${vu}`} />.
+  </li>
+</ol>
+
 	<p>
-		We can then prove that all continuous real functions on a fixed domain is a vector space TODO
+		Taking the usual meaning of <K math={`+`}/>, we can show that all of these properties hold for the set of all continuous real functions on a fixed domain and finite range. The essense of the fourier series lies in constructing an orthogonal basis (with infinity many basis vectors) for this vector space.
+	</p>
+	<p>
+		We also note at this point that this vector space can be equipped with the inner product <K math={`<f,g>=\\int_a^bf(x)g(x)dx`}/>, making it an inner product space. 
 	</p>
 	<!-- TODO we need to define the inner product to be the integral somewhere here. -->
 	<h2>Catching Waves</h2>
